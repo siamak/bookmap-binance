@@ -5,6 +5,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { DataCard } from "@/components/ui/data-card";
 import { useEffect, useState } from "react";
 import { useAlertStore } from "@/stores/use-alert-store";
+import { ArrowBigRight } from "lucide-react";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
 
 // Types
 type OrderBookEntry = [price: number, quantity: number];
@@ -25,6 +28,61 @@ function getIntensityColor(quantity: number, maxQuantity: number, isBid: boolean
 
 function getMaxQuantity(orders: OrderBookEntry[]): number {
 	return Math.max(...orders.map(([, qty]) => qty), 1);
+}
+
+// Find nearest order book entry to a specific price
+function findNearestOrder(
+	orders: OrderBookEntry[],
+	targetPrice: number
+): { entry: OrderBookEntry; index: number; distance: number } | null {
+	if (orders.length === 0) return null;
+
+	let nearestIndex = 0;
+	let minDistance = Math.abs(orders[0][0] - targetPrice);
+
+	for (let i = 1; i < orders.length; i++) {
+		const distance = Math.abs(orders[i][0] - targetPrice);
+		if (distance < minDistance) {
+			minDistance = distance;
+			nearestIndex = i;
+		}
+	}
+
+	return {
+		entry: orders[nearestIndex],
+		index: nearestIndex,
+		distance: minDistance,
+	};
+}
+
+// Calculate position as percentage (0-1) within the order book
+function calculatePosition(orders: OrderBookEntry[], targetPrice: number): number {
+	if (orders.length === 0) return 0;
+	if (orders.length === 1) return 0.5;
+
+	const nearest = findNearestOrder(orders, targetPrice);
+	if (!nearest) return 0;
+
+	return 74 + nearest.index * 24;
+}
+
+// Main utility function to find nearest item and position
+function findNearestItemAndPosition(
+	orders: OrderBookEntry[],
+	targetPrice: number
+): {
+	nearest: OrderBookEntry | null;
+	index: number;
+	position: number;
+} {
+	const nearest = findNearestOrder(orders, targetPrice);
+	const position = calculatePosition(orders, targetPrice);
+
+	return {
+		nearest: nearest?.entry || null,
+		index: nearest?.index || 0,
+		position,
+	};
 }
 
 // Shine effect component
@@ -116,6 +174,7 @@ interface OrderBookSectionProps {
 	maxQuantity: number;
 	orderType: OrderType;
 	activeShines: Set<string>;
+	indicatorPosition: number;
 }
 
 function OrderBookSection({
@@ -126,6 +185,7 @@ function OrderBookSection({
 	maxQuantity,
 	orderType,
 	activeShines,
+	indicatorPosition,
 }: OrderBookSectionProps) {
 	const headers = (
 		<div className="flex justify-between">
@@ -135,7 +195,11 @@ function OrderBookSection({
 	);
 
 	return (
-		<DataCard title={`${icon} ${title}`} titleClassName={titleColor} headers={headers} className="flex-1">
+		<DataCard title={`${icon} ${title}`} titleClassName={titleColor} headers={headers} className="relative flex-1">
+			<ArrowBigRight
+				className={`absolute top-0 -left-1 size-5 ${orderType === "bid" ? "text-green-500" : "text-red-500"}`}
+				style={{ top: `${indicatorPosition + 2}px` }}
+			/>
 			<AnimatePresence initial={false}>
 				{orders.map(([price, quantity]) => {
 					const shineKey = `${orderType}-${price}`;
@@ -162,6 +226,7 @@ interface OrderHeatmapProps {
 
 export function OrderHeatmap({ symbol = "btcusdt" }: OrderHeatmapProps) {
 	const { bids, asks } = useOrderBookStream(symbol, ORDER_BOOK_DEPTH);
+	const [targetPrice, setTargetPrice] = useState<number>(0);
 	const { alerts } = useAlertStore();
 	const [activeShines, setActiveShines] = useState<Set<string>>(new Set());
 
@@ -192,26 +257,43 @@ export function OrderHeatmap({ symbol = "btcusdt" }: OrderHeatmapProps) {
 	const maxBidQuantity = getMaxQuantity(bids);
 	const maxAskQuantity = getMaxQuantity(asks);
 
+	const bidResult = findNearestItemAndPosition(bids, targetPrice);
+	const askResult = findNearestItemAndPosition(asks, targetPrice);
+
 	return (
-		<div className="flex flex-col md:flex-row gap-4 text-xs font-mono">
-			<OrderBookSection
-				title="Bids"
-				icon="🟢"
-				titleColor="text-green-400"
-				orders={bids}
-				maxQuantity={maxBidQuantity}
-				orderType="bid"
-				activeShines={activeShines}
-			/>
-			<OrderBookSection
-				title="Asks"
-				icon="🔴"
-				titleColor="text-red-400"
-				orders={asks}
-				maxQuantity={maxAskQuantity}
-				orderType="ask"
-				activeShines={activeShines}
-			/>
+		<div className="flex flex-col gap-4">
+			<div className="flex gap-2 items-center">
+				<Label className="text-muted-foreground">Near Price</Label>
+				<Input
+					type="number"
+					value={targetPrice}
+					onChange={(e) => setTargetPrice(Number(e.target.value))}
+					className="w-24"
+				/>
+			</div>
+
+			<div className="flex flex-col md:flex-row gap-4 text-xs font-mono">
+				<OrderBookSection
+					title="Bids"
+					icon="🟢"
+					titleColor="text-green-400"
+					orders={bids}
+					maxQuantity={maxBidQuantity}
+					orderType="bid"
+					activeShines={activeShines}
+					indicatorPosition={bidResult.position}
+				/>
+				<OrderBookSection
+					title="Asks"
+					icon="🔴"
+					titleColor="text-red-400"
+					orders={asks}
+					maxQuantity={maxAskQuantity}
+					orderType="ask"
+					activeShines={activeShines}
+					indicatorPosition={askResult.position}
+				/>
+			</div>
 		</div>
 	);
 }
