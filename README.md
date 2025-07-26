@@ -1,10 +1,10 @@
-# Bookmap Binance
+# OrderFlow
 
 A real-time cryptocurrency order book and trade visualization app built with React, TypeScript, and Vite.
 
 ## Project Overview
 
-Bookmap Kute provides a live, interactive view of cryptocurrency market activity. It visualizes the order book (bids and asks), recent trades, and detects significant order book events ("walls") for selected trading pairs. The app is designed for speed, clarity, and ease of use, leveraging modern React and Vite tooling.
+OrderFlow provides a live, interactive view of cryptocurrency market activity. It visualizes the order book (bids and asks), recent trades, and detects significant order book events ("walls") for selected trading pairs. The app is designed for speed, clarity, and ease of use, leveraging modern React and Vite tooling.
 
 ## Features
 
