@@ -4,6 +4,7 @@ import { SymbolSelector } from "@/components/symbol-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BookOpen } from "lucide-react";
 import { ChartBar } from "lucide-react";
+import { AlertTriangle, Info } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { OrderAlerts } from "./components/order-alerts";
 
@@ -19,7 +20,7 @@ export default function App() {
 					<SymbolSelector value={symbol} onChange={setSymbol} />
 					<ThemeToggle />
 				</div>
-				<div className="grid grid-cols-2 gap-4">
+				<div className="grid grid-cols-2 sm:gap-2 gap-4">
 					<div className="col-span-1 space-y-3">
 						<h1 className="text-xl font-medium flex items-center gap-2">
 							<BookOpen className="size-5 text-primary" />
@@ -36,6 +37,44 @@ export default function App() {
 							Heatmap
 						</h1>
 						<OrderHeatmap key={`order-${symbol}`} symbol={symbol} />
+					</div>
+				</div>
+				<div className="grid grid-cols-2 sm:gap-2 gap-4">
+					{/* Header with important information */}
+					<div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+						<div className="flex items-start gap-3">
+							<Info className="size-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+							<div className="space-y-2">
+								<h2 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+									Binance Futures Real-Time Data
+								</h2>
+								<div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+									<p>• This application connects to Binance Futures API for real-time market data</p>
+									<p>• Data includes live trades, order book depth, and price movements</p>
+									<p>• All data is publicly available and does not require authentication</p>
+									<p>• Updates are streamed in real-time for accurate market monitoring</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					{/* Risk Disclaimer */}
+					<div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+						<div className="flex items-start gap-3">
+							<AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+							<div className="space-y-2">
+								<h3 className="text-lg font-semibold text-amber-900 dark:text-amber-100">
+									Important Information
+								</h3>
+								<div className="text-sm text-amber-800 dark:text-amber-200 space-y-1">
+									<p>• This is a data visualization tool only - no trading functionality</p>
+									<p>• Cryptocurrency trading involves substantial risk of loss</p>
+									<p>• Past performance does not guarantee future results</p>
+									<p>• Always conduct your own research before making investment decisions</p>
+									<p>• Consider consulting with a financial advisor for investment advice</p>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

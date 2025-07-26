@@ -28,7 +28,7 @@ export function TradeFeed({ symbol = "btcusdt" }) {
 			<span className="text-muted-foreground">Price</span>
 			<div className="flex-1"></div>
 			<span className="text-muted-foreground w-[100px] text-right">Qty</span>
-			<span className="text-muted-foreground w-[140px] text-right">Time</span>
+			<span className="text-muted-foreground w-[140px] text-right hidden md:block">Time</span>
 		</div>
 	);
 
@@ -75,7 +75,7 @@ export function TradeFeed({ symbol = "btcusdt" }) {
 											</span>
 											<div className="flex-1" />
 											<span className="w-[100px] text-right">{formatQuantity(t.qty).full}</span>
-											<span className="text-muted-foreground w-[140px] text-xs text-right">
+											<span className="text-muted-foreground w-[140px] text-xs text-right hidden md:block">
 												{new Date(t.time).toLocaleTimeString()}
 											</span>
 										</div>
