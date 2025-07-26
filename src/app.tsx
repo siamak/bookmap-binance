@@ -78,6 +78,16 @@ export default function App() {
 					</div>
 				</div>
 			</div>
+			<div className="flex mt-5 justify-center">
+				<iframe
+					src="https://ghbtns.com/github-btn.html?user=siamak&repo=bookmap-binance&type=star&count=true&size=large"
+					frameBorder="0"
+					scrolling="0"
+					width="120"
+					height="30"
+					title="GitHub"
+				></iframe>
+			</div>
 		</div>
 	);
 }
