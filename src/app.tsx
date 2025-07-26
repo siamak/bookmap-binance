@@ -20,7 +20,7 @@ export default function App() {
 					<SymbolSelector value={symbol} onChange={setSymbol} />
 					<ThemeToggle />
 				</div>
-				<div className="grid grid-cols-2 sm:gap-2 gap-4">
+				<div className="grid grid-cols-2 sm:gap-4 gap-2">
 					<div className="col-span-1 space-y-3">
 						<h1 className="text-xl font-medium flex items-center gap-2">
 							<BookOpen className="size-5 text-primary" />
@@ -39,9 +39,9 @@ export default function App() {
 						<OrderHeatmap key={`order-${symbol}`} symbol={symbol} />
 					</div>
 				</div>
-				<div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-2 gap-4">
+				<div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-4 gap-2">
 					{/* Header with important information */}
-					<div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+					<div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
 						<div className="flex items-start gap-3">
 							<Info className="size-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
 							<div className="space-y-2">
@@ -59,7 +59,7 @@ export default function App() {
 					</div>
 
 					{/* Risk Disclaimer */}
-					<div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+					<div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
 						<div className="flex items-start gap-3">
 							<AlertTriangle className="size-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
 							<div className="space-y-2">
