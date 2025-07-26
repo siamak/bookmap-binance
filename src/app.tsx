@@ -39,7 +39,7 @@ export default function App() {
 						<OrderHeatmap key={`order-${symbol}`} symbol={symbol} />
 					</div>
 				</div>
-				<div className="grid grid-cols-2 sm:gap-2 gap-4">
+				<div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-2 gap-4">
 					{/* Header with important information */}
 					<div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
 						<div className="flex items-start gap-3">
