@@ -1,13 +1,17 @@
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { useOrderBookStream } from "@/hooks/use-order-book-stream";
+import { useWallDetection } from "@/hooks/use-wall-detection";
 import { formatQuantity } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DataCard } from "@/components/ui/data-card";
-import { useEffect, useState } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEffect, useState, useRef } from "react";
 import { useAlertStore } from "@/stores/use-alert-store";
 import { ArrowBigRight } from "lucide-react";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useDocumentStore } from "@/stores/use-document-store";
 
 // Types
 type OrderBookEntry = [price: number, quantity: number];
@@ -15,7 +19,6 @@ type OrderType = "bid" | "ask";
 
 // Constants
 const ORDER_BOOK_DEPTH = 40;
-const ANIMATION_DURATION = 1;
 const SHINE_DURATION = 2000; // ms
 
 // Utility functions
@@ -141,19 +144,14 @@ function OrderRow({ price, quantity, backgroundColor, orderType, shine }: OrderR
 	return (
 		<Tooltip delayDuration={100}>
 			<TooltipTrigger asChild>
-				<motion.div
-					layout
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					exit={{ opacity: 0 }}
-					transition={{ duration: ANIMATION_DURATION }}
+				<div
 					className="flex justify-between px-4 py-[2px] w-full cursor-help relative"
 					style={{ backgroundColor }}
 				>
 					{shine && <ShineEffect />}
 					<span className="relative z-10">{displayPrice}</span>
 					<span className="relative z-10">{formatQuantity(quantity).short}</span>
-				</motion.div>
+				</div>
 			</TooltipTrigger>
 			<TooltipContent side="top" align="center" className="text-xs">
 				<div className="text-center">
@@ -187,6 +185,17 @@ function OrderBookSection({
 	activeShines,
 	indicatorPosition,
 }: OrderBookSectionProps) {
+	const { symbol } = useDocumentStore();
+	const scrollAreaRef = useRef<HTMLDivElement>(null);
+	const scrollerRef = useRef<HTMLDivElement>(null);
+
+	const rowVirtualizer = useVirtualizer({
+		count: orders.length,
+		getScrollElement: () => scrollerRef.current,
+		estimateSize: () => 24,
+		overscan: 2,
+	});
+
 	const headers = (
 		<div className="flex justify-between">
 			<span>Price</span>
@@ -200,35 +209,56 @@ function OrderBookSection({
 				className={`absolute top-0 -left-1 size-5 ${orderType === "bid" ? "text-green-500" : "text-red-500"}`}
 				style={{ top: `${indicatorPosition + 2}px` }}
 			/>
-			<AnimatePresence initial={false}>
-				{orders.map(([price, quantity]) => {
-					const shineKey = `${orderType}-${price}`;
-					return (
-						<OrderRow
-							key={shineKey}
-							price={price}
-							quantity={quantity}
-							backgroundColor={getIntensityColor(quantity, maxQuantity, orderType === "bid")}
-							orderType={orderType}
-							shine={activeShines.has(shineKey)}
-						/>
-					);
-				})}
-			</AnimatePresence>
+			<ScrollArea ref={scrollAreaRef} className="h-120">
+				<div
+					ref={scrollerRef}
+					style={{
+						height: `${rowVirtualizer.getTotalSize()}px`,
+						width: "100%",
+						position: "relative",
+					}}
+				>
+					{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+						const [price, quantity] = orders[virtualRow.index];
+						const shineKey = `${orderType}-${price}`;
+
+						return (
+							<div
+								key={`${orderType}-${symbol}-${virtualRow.key}`}
+								style={{
+									position: "absolute",
+									top: 0,
+									left: 0,
+									width: "100%",
+									height: `${virtualRow.size}px`,
+									transform: `translateY(${virtualRow.start}px)`,
+								}}
+							>
+								<OrderRow
+									price={price}
+									quantity={quantity}
+									backgroundColor={getIntensityColor(quantity, maxQuantity, orderType === "bid")}
+									orderType={orderType}
+									shine={activeShines.has(shineKey)}
+								/>
+							</div>
+						);
+					})}
+				</div>
+			</ScrollArea>
 		</DataCard>
 	);
 }
 
-// Main component
-interface OrderHeatmapProps {
-	symbol?: string;
-}
-
-export function OrderHeatmap({ symbol = "btcusdt" }: OrderHeatmapProps) {
+export function OrderHeatmap() {
+	const { symbol } = useDocumentStore();
 	const { bids, asks } = useOrderBookStream(symbol, ORDER_BOOK_DEPTH);
 	const [targetPrice, setTargetPrice] = useState<number>(0);
 	const { alerts } = useAlertStore();
 	const [activeShines, setActiveShines] = useState<Set<string>>(new Set());
+
+	// Enable wall detection
+	useWallDetection(bids, asks);
 
 	// Watch for new wall alerts and trigger shine
 	useEffect(() => {
@@ -262,16 +292,6 @@ export function OrderHeatmap({ symbol = "btcusdt" }: OrderHeatmapProps) {
 
 	return (
 		<div className="flex flex-col gap-4">
-			<div className="flex gap-2 items-center">
-				<Label className="text-muted-foreground">Near Price</Label>
-				<Input
-					type="number"
-					value={targetPrice}
-					onChange={(e) => setTargetPrice(Number(e.target.value))}
-					className="w-24"
-				/>
-			</div>
-
 			<div className="flex flex-col md:flex-row gap-4 text-xs font-mono">
 				<OrderBookSection
 					title="Bids"
@@ -292,6 +312,15 @@ export function OrderHeatmap({ symbol = "btcusdt" }: OrderHeatmapProps) {
 					orderType="ask"
 					activeShines={activeShines}
 					indicatorPosition={askResult.position}
+				/>
+			</div>
+			<div className="flex gap-2 items-center">
+				<Label className="text-muted-foreground">Near Price</Label>
+				<Input
+					type="number"
+					value={targetPrice}
+					onChange={(e) => setTargetPrice(Number(e.target.value))}
+					className="w-24"
 				/>
 			</div>
 		</div>

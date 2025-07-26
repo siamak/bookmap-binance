@@ -8,15 +8,11 @@ import { Button } from "@/components/ui/button";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTradesStore } from "@/stores/use-trades-store";
 import { SlidingNumber } from "./ui/sliding-number";
+import { useDocumentStore } from "@/stores/use-document-store";
 
-interface SymbolSelectorProps {
-	value: string;
-	onChange: (symbol: string) => void;
-	quoteAsset?: string;
-}
-
-export function SymbolSelector({ value, onChange, quoteAsset = "USDT" }: SymbolSelectorProps) {
-	const { symbols, loading: symbolsLoading, error } = useSymbols(quoteAsset);
+export function SymbolSelector() {
+	const { symbol, setSymbol } = useDocumentStore();
+	const { symbols, loading: symbolsLoading, error } = useSymbols("USDT");
 	const { trades } = useTradesStore();
 	const [open, setOpen] = useState(false);
 	const [searchValue, setSearchValue] = useState("");
@@ -34,10 +30,6 @@ export function SymbolSelector({ value, onChange, quoteAsset = "USDT" }: SymbolS
 		if (!searchValue.trim()) return symbols;
 		return symbols.filter((symbol) => symbol.toLowerCase().includes(searchValue.toLowerCase()));
 	}, [symbols, searchValue]);
-
-	useEffect(() => {
-		setSearchValue("");
-	}, [quoteAsset]);
 
 	// Virtualizer setup - stable reference
 	const rowVirtualizer = useVirtualizer({
@@ -64,7 +56,7 @@ export function SymbolSelector({ value, onChange, quoteAsset = "USDT" }: SymbolS
 						aria-expanded={open}
 					>
 						<div className="flex flex-col items-start">
-							<span>{value ? value : "Select symbol"}</span>
+							<span>{symbol ? symbol : "Select symbol"}</span>
 						</div>
 						<ChevronDown className="ml-2" />
 					</Button>
@@ -128,10 +120,10 @@ export function SymbolSelector({ value, onChange, quoteAsset = "USDT" }: SymbolS
 														value={sym}
 														className={cn(
 															"uppercase",
-															value === sym && "bg-accent text-accent-foreground"
+															symbol === sym && "bg-accent text-accent-foreground"
 														)}
 														onSelect={() => {
-															onChange(sym);
+															setSymbol(sym);
 															setOpen(false);
 															setSearchValue("");
 														}}

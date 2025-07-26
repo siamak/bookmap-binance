@@ -1,42 +1,39 @@
 import { TradeFeed } from "@/components/trade-feed";
 import { OrderHeatmap } from "@/components/order-heatmap";
+import { BookCounter } from "@/components/book-counter";
 import { SymbolSelector } from "@/components/symbol-selector";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BookOpen } from "lucide-react";
 import { ChartBar } from "lucide-react";
 import { AlertTriangle, Info } from "lucide-react";
-import { useQueryState } from "nuqs";
 import { OrderAlerts } from "./components/order-alerts";
 
 export default function App() {
-	const [symbol, setSymbol] = useQueryState("symbol", {
-		defaultValue: "btcusdt",
-	});
-
 	return (
 		<div>
 			<div className="p-4 space-y-4 max-w-7xl mx-auto w-full">
 				<div className="border-b pb-4 flex items-center justify-between">
-					<SymbolSelector value={symbol} onChange={setSymbol} />
+					<SymbolSelector />
 					<ThemeToggle />
 				</div>
-				<div className="grid grid-cols-2 sm:gap-4 gap-2">
-					<div className="col-span-1 space-y-3">
+				<div className="grid grid-cols-1 lg:grid-cols-2 sm:gap-4 gap-2">
+					<div className="space-y-3">
 						<h1 className="text-xl font-medium flex items-center gap-2">
 							<BookOpen className="size-5 text-primary" />
 							Trades
 						</h1>
 						<div className="flex-1 space-y-3">
-							<TradeFeed key={`trade-${symbol}`} symbol={symbol} />
+							<TradeFeed />
 							<OrderAlerts />
 						</div>
 					</div>
-					<div className="col-span-1 space-y-3">
+					<div className="space-y-3">
 						<h1 className="text-xl font-medium flex items-center gap-2">
 							<ChartBar className="size-5 text-primary" />
 							Heatmap
 						</h1>
-						<OrderHeatmap key={`order-${symbol}`} symbol={symbol} />
+						<BookCounter />
+						<OrderHeatmap />
 					</div>
 				</div>
 				<div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-4 gap-2">
@@ -78,7 +75,7 @@ export default function App() {
 					</div>
 				</div>
 			</div>
-			<div className="flex mt-5 justify-center">
+			<div className="flex my-5 justify-center">
 				<iframe
 					src="https://ghbtns.com/github-btn.html?user=siamak&repo=bookmap-binance&type=star&count=true&size=large"
 					frameBorder="0"

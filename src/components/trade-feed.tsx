@@ -6,8 +6,10 @@ import { AnimatePresence, motion } from "motion/react";
 import { DataCard } from "@/components/ui/data-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useTradesStore } from "@/stores/use-trades-store";
+import { useDocumentStore } from "@/stores/use-document-store";
 
-export function TradeFeed({ symbol = "btcusdt" }) {
+export function TradeFeed() {
+	const { symbol } = useDocumentStore();
 	useTradeStream(symbol);
 	const { trades } = useTradesStore();
 

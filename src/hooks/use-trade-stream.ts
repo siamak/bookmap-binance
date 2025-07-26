@@ -1,24 +1,23 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { useTradesStore } from "@/stores/use-trades-store";
 
-export function useTradeStream(symbol = "btcusdt") {
-	const { addTrade, clearTrades } = useTradesStore();
-	const wsRef = useRef<WebSocket | null>(null);
-	const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-	// Clear trades when symbol changes
-	useEffect(() => {
-		clearTrades();
-	}, [symbol, clearTrades]);
-
-	const connectWebSocket = useCallback(() => {
-		// Close existing connection if any
-		if (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED) {
-			wsRef.current.close();
+// Global connection manager to prevent duplicate WebSocket connections
+class TradeConnectionManager {
+	private static connections = new Map<
+		string,
+		{
+			ws: WebSocket;
+			subscribers: Set<() => void>;
 		}
+	>();
 
+	static getConnection(symbol: string) {
+		return this.connections.get(symbol);
+	}
+
+	static createConnection(symbol: string) {
 		const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol}@trade`);
-		wsRef.current = ws;
+		const subscribers = new Set<() => void>();
 
 		ws.onopen = () => {
 			console.log(`Trade WebSocket connected for ${symbol}`);
@@ -33,7 +32,13 @@ export function useTradeStream(symbol = "btcusdt") {
 					isBuyerMaker: data.m,
 					time: data.T,
 				};
-				addTrade(trade);
+
+				// Notify all subscribers
+				subscribers.forEach((callback) => callback());
+
+				// Add trade to store
+				const tradesStore = useTradesStore.getState();
+				tradesStore.addTrade(trade);
 			} catch (error) {
 				console.error("Error processing trade data:", error);
 			}
@@ -45,33 +50,53 @@ export function useTradeStream(symbol = "btcusdt") {
 
 		ws.onclose = (event) => {
 			console.log(`Trade WebSocket closed for ${symbol}:`, event.code, event.reason);
-
-			// Only attempt reconnection if it wasn't a manual close
-			if (event.code !== 1000 && !event.wasClean) {
-				console.log(`Attempting to reconnect trade stream for ${symbol} in 3 seconds...`);
-				reconnectTimeoutRef.current = setTimeout(() => {
-					connectWebSocket();
-				}, 3000);
-			}
+			this.connections.delete(symbol);
 		};
 
-		return ws;
-	}, [symbol, addTrade]);
+		this.connections.set(symbol, { ws, subscribers });
+		return { ws, subscribers };
+	}
 
-	useEffect(() => {
-		const ws = connectWebSocket();
-
+	static subscribe(symbol: string, callback: () => void) {
+		let connection = this.getConnection(symbol);
+		if (!connection) {
+			connection = this.createConnection(symbol);
+		}
+		connection.subscribers.add(callback);
 		return () => {
-			// Clear any pending reconnection
-			if (reconnectTimeoutRef.current) {
-				clearTimeout(reconnectTimeoutRef.current);
-				reconnectTimeoutRef.current = null;
-			}
-
-			// Close WebSocket if it's open
-			if (ws && ws.readyState === WebSocket.OPEN) {
-				ws.close(1000, "Component unmounting");
+			connection?.subscribers.delete(callback);
+			if (connection?.subscribers.size === 0) {
+				connection.ws.close(1000, "No more subscribers");
+				this.connections.delete(symbol);
 			}
 		};
-	}, [connectWebSocket]);
+	}
+}
+
+export function useTradeStream(symbol = "btcusdt") {
+	const { clearTrades } = useTradesStore();
+	const isMountedRef = useRef(true);
+
+	// Clear trades when symbol changes
+	useEffect(() => {
+		clearTrades();
+	}, [symbol, clearTrades]);
+
+	// Set mounted flag
+	useEffect(() => {
+		isMountedRef.current = true;
+		return () => {
+			isMountedRef.current = false;
+		};
+	}, []);
+
+	// Subscribe to trade updates
+	useEffect(() => {
+		const unsubscribe = TradeConnectionManager.subscribe(symbol, () => {
+			// The trade is already added to the store in the connection manager
+			// This callback can be used for additional processing if needed
+		});
+
+		return unsubscribe;
+	}, [symbol]);
 }
