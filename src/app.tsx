@@ -6,7 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { BookOpen } from "lucide-react";
 import { ChartBar } from "lucide-react";
 import { AlertTriangle, Info } from "lucide-react";
-import { OrderAlerts } from "./components/order-alerts";
+import { OrderAlerts } from "@/components/order-alerts";
 
 export default function App() {
 	return (
@@ -14,6 +14,7 @@ export default function App() {
 			<div className="p-4 space-y-4 max-w-7xl mx-auto w-full">
 				<div className="border-b pb-4 flex items-center justify-between">
 					<SymbolSelector />
+
 					<ThemeToggle />
 				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-2 sm:gap-4 gap-2">

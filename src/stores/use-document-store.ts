@@ -1,17 +1,26 @@
-import { create } from "zustand";
+import { useQueryState } from "nuqs";
 
-interface DocumentStore {
-	symbol: string;
-	quoteAsset: string;
-	setSymbol: (symbol: string) => void;
-	setQuoteAsset: (quoteAsset: string) => void;
-	resetSymbol: () => void;
-}
+// Create a custom hook that combines nuqs with Zustand
+export const useDocumentStore = () => {
+	const [symbol, setSymbol] = useQueryState("symbol", {
+		defaultValue: "btcusdt",
+		parse: (value) => value.toLowerCase(),
+		serialize: (value) => value.toLowerCase(),
+	});
 
-export const useDocumentStore = create<DocumentStore>((set) => ({
-	symbol: "btcusdt",
-	quoteAsset: "USDT",
-	setSymbol: (symbol) => set({ symbol }),
-	setQuoteAsset: (quoteAsset) => set({ quoteAsset }),
-	resetSymbol: () => set({ symbol: "" }),
-}));
+	const [quoteAsset, setQuoteAsset] = useQueryState("quoteAsset", {
+		defaultValue: "USDT",
+		parse: (value) => value.toUpperCase(),
+		serialize: (value) => value.toUpperCase(),
+	});
+
+	const resetSymbol = () => setSymbol("btcusdt");
+
+	return {
+		symbol,
+		quoteAsset,
+		setSymbol,
+		setQuoteAsset,
+		resetSymbol,
+	};
+};

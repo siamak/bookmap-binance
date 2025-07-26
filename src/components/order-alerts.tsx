@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useAlertStore } from "@/stores/use-alert-store";
-import { DataCard } from "./ui/data-card";
+import { DataCard } from "@/components/ui/data-card";
 import { cn } from "@/lib/utils";
 
 export function OrderAlerts() {

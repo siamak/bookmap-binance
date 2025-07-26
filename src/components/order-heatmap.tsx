@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useOrderBookStream } from "@/hooks/use-order-book-stream";
 import { useWallDetection } from "@/hooks/use-wall-detection";
+import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { formatQuantity } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DataCard } from "@/components/ui/data-card";
@@ -8,8 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState, useRef } from "react";
 import { useAlertStore } from "@/stores/use-alert-store";
 import { ArrowBigRight } from "lucide-react";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useDocumentStore } from "@/stores/use-document-store";
 
@@ -253,12 +254,13 @@ function OrderBookSection({
 export function OrderHeatmap() {
 	const { symbol } = useDocumentStore();
 	const { bids, asks } = useOrderBookStream(symbol, ORDER_BOOK_DEPTH);
+	const isPageVisible = usePageVisibility();
 	const [targetPrice, setTargetPrice] = useState<number>(0);
 	const { alerts } = useAlertStore();
 	const [activeShines, setActiveShines] = useState<Set<string>>(new Set());
 
-	// Enable wall detection
-	useWallDetection(bids, asks);
+	// Enable wall detection only when page is visible
+	useWallDetection(isPageVisible ? bids : [], isPageVisible ? asks : []);
 
 	// Watch for new wall alerts and trigger shine
 	useEffect(() => {

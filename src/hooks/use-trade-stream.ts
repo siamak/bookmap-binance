@@ -73,7 +73,7 @@ class TradeConnectionManager {
 	}
 }
 
-export function useTradeStream(symbol = "btcusdt") {
+export function useTradeStream(symbol = "btcusdt", isVisible = true) {
 	const { clearTrades } = useTradesStore();
 	const isMountedRef = useRef(true);
 
@@ -90,13 +90,15 @@ export function useTradeStream(symbol = "btcusdt") {
 		};
 	}, []);
 
-	// Subscribe to trade updates
+	// Subscribe to trade updates only when visible
 	useEffect(() => {
+		if (!isVisible) return;
+		
 		const unsubscribe = TradeConnectionManager.subscribe(symbol, () => {
 			// The trade is already added to the store in the connection manager
 			// This callback can be used for additional processing if needed
 		});
 
 		return unsubscribe;
-	}, [symbol]);
+	}, [symbol, isVisible]);
 }

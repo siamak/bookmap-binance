@@ -1,26 +1,27 @@
 import { useState, useEffect, useCallback } from "react";
 import { useOrderBookStream } from "@/hooks/use-order-book-stream";
+import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { formatQuantity } from "@/lib/utils";
 import { DataCard } from "@/components/ui/data-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDocumentStore } from "@/stores/use-document-store";
+import { Pause, Play } from "lucide-react";
 
 export function BookCounter() {
 	const { symbol } = useDocumentStore();
 	const { bids, asks } = useOrderBookStream(symbol, 100);
+	const isPageVisible = usePageVisibility();
 	const [numberOfRows, setNumberOfRows] = useState(6);
 	const [isRunning, setIsRunning] = useState(false);
-	const [isFixed, setIsFixed] = useState(false);
 	const [buyPressure, setBuyPressure] = useState(0);
 	const [sellPressure, setSellPressure] = useState(0);
-	const [calculationMethod, setCalculationMethod] = useState<"weighted" | "depth" | "combined">("combined");
-	const [showDebug, setShowDebug] = useState(false);
+	const [calculationMethod] = useState<"weighted" | "depth" | "combined">("combined");
 
 	// Calculate order pressure with price weighting and market depth analysis
 	const calculatePressure = useCallback(() => {
-		if (!isRunning || bids.length === 0 || asks.length === 0) return;
+		if (!isRunning || !isPageVisible || bids.length === 0 || asks.length === 0) return;
 
 		const topBids = bids.slice(0, numberOfRows);
 		const topAsks = asks.slice(0, numberOfRows);
@@ -100,14 +101,14 @@ export function BookCounter() {
 
 		setBuyPressure(totalBuyPressure);
 		setSellPressure(totalSellPressure);
-	}, [bids, asks, numberOfRows, isRunning, calculationMethod]);
+	}, [bids, asks, numberOfRows, isRunning, calculationMethod, isPageVisible]);
 
 	// Update pressure when data changes
 	useEffect(() => {
-		if (isRunning) {
+		if (isRunning && isPageVisible) {
 			calculatePressure();
 		}
-	}, [calculatePressure, isRunning]);
+	}, [calculatePressure, isRunning, isPageVisible]);
 
 	// Start/stop counter with spacebar
 	useEffect(() => {
@@ -122,14 +123,6 @@ export function BookCounter() {
 		return () => window.removeEventListener("keydown", handleKeyPress);
 	}, []);
 
-	// Toggle fixed mode
-	const toggleFixed = () => {
-		setIsFixed((prev) => !prev);
-		if (isFixed) {
-			setIsRunning(false);
-		}
-	};
-
 	// Toggle stop/start
 	const toggleRunning = () => {
 		setIsRunning((prev) => !prev);
@@ -140,12 +133,17 @@ export function BookCounter() {
 	const sellPercentage = 100 - buyPercentage;
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-2">
 			{/* Book Counter Controls */}
 			<DataCard title="Book Counter" className="space-y-3">
-				<div className="flex items-center gap-4 pt-0 p-4">
+				<div className="flex items-center justify-between gap-2 pt-0 p-4">
+					<Label className="text-sm font-normal text-muted-foreground">
+						number of rows{" "}
+						<kbd className="flex h-5 items-center gap-0.5 whitespace-nowrap rounded bg-muted px-1.5 text-xs text-muted-foreground ring-1 ring-inset ring-border">
+							Space
+						</kbd>
+					</Label>
 					<div className="flex items-center gap-2">
-						<Label className="text-sm text-muted-foreground">number of rows</Label>
 						<Input
 							type="number"
 							value={numberOfRows}
@@ -154,80 +152,16 @@ export function BookCounter() {
 							min={1}
 							max={50}
 						/>
-					</div>
-					<div className="flex gap-2">
-						<Button
-							variant={isFixed ? "default" : "outline"}
-							size="sm"
-							onClick={toggleFixed}
-							className="text-xs"
-						>
-							fixed
-						</Button>
 						<Button
 							variant={isRunning ? "default" : "outline"}
 							size="sm"
 							onClick={toggleRunning}
 							className="text-xs"
 						>
-							{isRunning ? "stop" : "start"}
-						</Button>
-						<Button
-							variant={showDebug ? "default" : "outline"}
-							size="sm"
-							onClick={() => setShowDebug(!showDebug)}
-							className="text-xs"
-						>
-							debug
+							{isRunning ? <Pause className="size-4" /> : <Play className="size-4" />}
 						</Button>
 					</div>
 				</div>
-
-				{/* Calculation Method Selector */}
-				<div className="px-4 pb-4">
-					<div className="flex items-center gap-2 mb-2">
-						<Label className="text-sm text-muted-foreground">calculation method</Label>
-					</div>
-					<div className="flex gap-1">
-						<Button
-							variant={calculationMethod === "weighted" ? "default" : "outline"}
-							size="sm"
-							onClick={() => setCalculationMethod("weighted")}
-							className="text-xs"
-						>
-							weighted
-						</Button>
-						<Button
-							variant={calculationMethod === "depth" ? "default" : "outline"}
-							size="sm"
-							onClick={() => setCalculationMethod("depth")}
-							className="text-xs"
-						>
-							depth
-						</Button>
-						<Button
-							variant={calculationMethod === "combined" ? "default" : "outline"}
-							size="sm"
-							onClick={() => setCalculationMethod("combined")}
-							className="text-xs"
-						>
-							combined
-						</Button>
-					</div>
-				</div>
-
-				{/* Debug Information */}
-				{showDebug && (
-					<div className="px-4 pb-4 text-xs text-muted-foreground space-y-1">
-						<div>Method: {calculationMethod}</div>
-						<div>Rows: {numberOfRows}</div>
-						<div>Bids: {bids.length} levels</div>
-						<div>Asks: {asks.length} levels</div>
-						{bids.length > 0 && asks.length > 0 && (
-							<div>Mid Price: {((bids[0][0] + asks[0][0]) / 2).toFixed(2)}</div>
-						)}
-					</div>
-				)}
 			</DataCard>
 
 			{/* Pressure Visualization Bar */}
@@ -237,8 +171,8 @@ export function BookCounter() {
 					className="absolute left-0 top-0 h-full bg-green-500 transition-all duration-300 ease-out"
 					style={{ width: `${buyPercentage}%` }}
 				>
-					<div className="flex items-center justify-center h-full text-white font-mono text-sm font-medium">
-						{formatQuantity(buyPressure).short}
+					<div className="flex items-center justify-center h-full text-white font-mono text-xs font-medium">
+						{buyPercentage.toFixed(1)}%
 					</div>
 				</div>
 
@@ -247,18 +181,17 @@ export function BookCounter() {
 					className="absolute right-0 top-0 h-full bg-red-600 transition-all duration-300 ease-out"
 					style={{ width: `${sellPercentage}%` }}
 				>
-					<div className="flex items-center justify-center h-full text-white font-mono text-sm font-medium">
-						{formatQuantity(sellPressure).short}
+					<div className="flex items-center justify-center h-full text-white font-mono text-xs font-medium">
+						{sellPercentage.toFixed(1)}%
 					</div>
 				</div>
 			</div>
 
-			{/* Status indicator */}
-			{isRunning && (
-				<div className="text-xs text-muted-foreground text-center">
-					Counter running - Press spacebar to stop
-				</div>
-			)}
+			{/* Pressure Values Display */}
+			<div className="flex justify-between text-xs text-muted-foreground">
+				<div>Buy Pressure: {formatQuantity(buyPressure).short}</div>
+				<div>Sell Pressure: {formatQuantity(sellPressure).short}</div>
+			</div>
 		</div>
 	);
 }

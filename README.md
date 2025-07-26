@@ -12,6 +12,8 @@ Bookmap Kute provides a live, interactive view of cryptocurrency market activity
 -   **Order Heatmap:** Visualizes the current order book depth for bids and asks, highlighting large "walls" and their appearance/disappearance.
 -   **Trade Feed:** Displays a real-time, virtualized list of recent trades for the selected symbol, including price, quantity, and time.
 -   **Order Alerts:** Notifies users of significant order book events, such as the appearance or removal of large bid/ask walls.
+-   **Book Counter:** Real-time pressure analysis with configurable calculation methods (weighted, depth, combined).
+-   **Performance Optimization:** Automatically pauses heavy processing when the tab becomes inactive to save CPU and battery. Uses a centralized store for efficient state management.
 -   **Theme Toggle:** Switch between light and dark mode.
 
 ## Data Sources

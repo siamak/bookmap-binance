@@ -7,12 +7,12 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTradesStore } from "@/stores/use-trades-store";
-import { SlidingNumber } from "./ui/sliding-number";
+import { SlidingNumber } from "@/components/ui/sliding-number";
 import { useDocumentStore } from "@/stores/use-document-store";
 
 export function SymbolSelector() {
-	const { symbol, setSymbol } = useDocumentStore();
-	const { symbols, loading: symbolsLoading, error } = useSymbols("USDT");
+	const { symbol, setSymbol, quoteAsset } = useDocumentStore();
+	const { symbols, loading: symbolsLoading, error } = useSymbols(quoteAsset);
 	const { trades } = useTradesStore();
 	const [open, setOpen] = useState(false);
 	const [searchValue, setSearchValue] = useState("");

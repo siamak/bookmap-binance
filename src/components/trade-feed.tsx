@@ -1,4 +1,5 @@
 import { useTradeStream } from "@/hooks/use-trade-stream";
+import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { formatQuantity } from "@/lib/utils";
@@ -10,7 +11,8 @@ import { useDocumentStore } from "@/stores/use-document-store";
 
 export function TradeFeed() {
 	const { symbol } = useDocumentStore();
-	useTradeStream(symbol);
+	const isPageVisible = usePageVisibility();
+	useTradeStream(symbol, isPageVisible);
 	const { trades } = useTradesStore();
 
 	const scrollAreaRef = useRef<HTMLDivElement>(null);

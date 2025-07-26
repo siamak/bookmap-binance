@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { useAlertStore } from "@/stores/use-alert-store";
 import { formatQuantity } from "@/lib/utils";
-import type { DepthLevel } from "./use-order-book-stream";
+import type { DepthLevel } from "@/hooks/use-order-book-stream";
 
 interface WallAlert {
 	type: "wall" | "remove";
