@@ -9,7 +9,7 @@ interface WallAlert {
 }
 
 const WALL_THRESHOLD_MULTIPLIER = 3;
-const WALL_GROWTH_MULTIPLIER = 2;
+const WALL_GROWTH_MULTIPLIER = 3;
 
 export function useWallDetection(bids: DepthLevel[], asks: DepthLevel[]) {
 	const lastBidsRef = useRef<Map<string, number>>(new Map());

@@ -13,9 +13,11 @@ export default function App() {
 		<div>
 			<div className="p-4 space-y-4 max-w-7xl mx-auto w-full">
 				<div className="border-b pb-4 flex items-center justify-between">
+					<div className="flex items-center gap-2">
+						<img src="/logo.png" alt="OrderFlow" className="h-6 w-auto" />
+						<h1 className="text-xl font-medium">OrderFlow</h1>
+					</div>
 					<SymbolSelector />
-
-					<ThemeToggle />
 				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-2 sm:gap-4 gap-2">
 					<div className="space-y-3">
@@ -86,6 +88,7 @@ export default function App() {
 					title="GitHub"
 				></iframe>
 			</div>
+			<ThemeToggle />
 		</div>
 	);
 }

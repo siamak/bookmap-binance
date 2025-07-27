@@ -2,13 +2,14 @@ import { motion, AnimatePresence } from "motion/react";
 import { useAlertStore } from "@/stores/use-alert-store";
 import { DataCard } from "@/components/ui/data-card";
 import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function OrderAlerts() {
 	const { alerts } = useAlertStore();
 
 	return (
 		<DataCard title="Alerts">
-			<div className="flex flex-col divide-y">
+			<ScrollArea className="flex flex-col divide-y h-[110px]">
 				<AnimatePresence>
 					{alerts.map((alert) => (
 						<motion.div
@@ -28,7 +29,7 @@ export function OrderAlerts() {
 						</motion.div>
 					))}
 				</AnimatePresence>
-			</div>
+			</ScrollArea>
 		</DataCard>
 	);
 }
