@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { BookOpen, ChartBar } from "lucide-react";
 import { OrderAlerts } from "@/components/order-alerts";
 import { InfoAccordion } from "@/components/info";
+import { Button } from "./components/ui/button";
 
 export default function App() {
 	return (
@@ -40,16 +41,38 @@ export default function App() {
 				</div>
 				<InfoAccordion />
 			</div>
-			<div className="flex my-5 justify-center">
+			<footer className="flex flex-col my-5 items-center gap-1text-center" role="contentinfo">
+				<p className="text-sm text-muted-foreground">
+					Your data is never stored on our servers. It stays on your device.
+				</p>
+				<div className="text-sm text-muted-foreground mb-2">
+					Created by{" "}
+					<Button variant="link" className="px-1" asChild>
+						<a href="https://github.com/siamak" target="_blank" rel="noopener noreferrer">
+							Siamak
+						</a>
+					</Button>{" "}
+					<Button variant="link" className="px-1" asChild>
+						<a
+							href="https://github.com/siamak/orderflow"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="View source on GitHub"
+						>
+							Github
+						</a>
+					</Button>
+				</div>
 				<iframe
 					src="https://ghbtns.com/github-btn.html?user=siamak&repo=orderflow&type=star&count=true&size=large"
 					frameBorder="0"
 					scrolling="0"
 					width="120"
 					height="30"
-					title="GitHub"
+					title="GitHub Stars"
+					aria-label="GitHub Stars"
 				></iframe>
-			</div>
+			</footer>
 			<ThemeToggle />
 		</div>
 	);
