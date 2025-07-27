@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useTradesStore } from "@/stores/use-trades-store";
-import { SlidingNumber } from "@/components/ui/sliding-number";
 import { useDocumentStore } from "@/stores/use-document-store";
+import { ThrottledPrice } from "@/components/throttled-price";
 
 export function SymbolSelector() {
 	const { symbol, setSymbol, quoteAsset } = useDocumentStore();
@@ -18,20 +18,11 @@ export function SymbolSelector() {
 	const [searchValue, setSearchValue] = useState("");
 	const parentRef = useRef<HTMLDivElement>(null);
 
-	// Get current price from latest trade
-	const currentPrice = useMemo(() => {
-		if (trades.length === 0) return null;
-		const latestTrade = trades[trades.length - 1];
-		return latestTrade.price;
-	}, [trades]);
-
-	// Filter symbols based on search
 	const filteredSymbols = useMemo(() => {
 		if (!searchValue.trim()) return symbols;
 		return symbols.filter((symbol) => symbol.toLowerCase().includes(searchValue.toLowerCase()));
 	}, [symbols, searchValue]);
 
-	// Virtualizer setup - stable reference
 	const rowVirtualizer = useVirtualizer({
 		count: filteredSymbols.length,
 		getScrollElement: () => parentRef.current,
@@ -39,7 +30,6 @@ export function SymbolSelector() {
 		overscan: 4,
 	});
 
-	// Recalculate virtualizer when filtered symbols change
 	useEffect(() => {
 		rowVirtualizer.measure();
 	}, [filteredSymbols.length, rowVirtualizer]);
@@ -141,19 +131,7 @@ export function SymbolSelector() {
 				</PopoverContent>
 			</Popover>
 
-			{currentPrice && (
-				<SlidingNumber
-					number={currentPrice}
-					className="px-1 tabular-nums text-muted-foreground font-normal"
-					decimalPlaces={currentPrice?.toString().split(".")[1]?.length ?? 0}
-					prefix="$"
-					transition={{
-						stiffness: 200,
-						damping: 20,
-						mass: 0.4,
-					}}
-				/>
-			)}
+			<ThrottledPrice trades={trades} prefix="$" />
 		</div>
 	);
 }
