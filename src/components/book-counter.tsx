@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDocumentStore } from "@/stores/use-document-store";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play, Triangle } from "lucide-react";
+import { motion } from "motion/react";
 
 export function BookCounter() {
 	const { symbol } = useDocumentStore();
@@ -135,8 +136,8 @@ export function BookCounter() {
 	return (
 		<div className="space-y-2">
 			{/* Book Counter Controls */}
-			<DataCard title="Book Counter" className="space-y-3">
-				<div className="flex items-center justify-between gap-2 pt-0 p-4">
+			<DataCard title="Book Counter">
+				<div className="flex items-center justify-between gap-2 p-4">
 					<Label className="text-sm font-normal text-muted-foreground">
 						number of rows{" "}
 						<kbd className="flex h-5 items-center gap-0.5 whitespace-nowrap rounded bg-muted px-1.5 text-xs text-muted-foreground ring-1 ring-inset ring-border">
@@ -162,36 +163,51 @@ export function BookCounter() {
 						</Button>
 					</div>
 				</div>
+				<div className="grid items-center grid-cols-2 gap-2 border-t ">
+					{/* Seesaw Style Pressure Visualization */}
+					<div className="relative flex items-center justify-center h-32 font-mono tabular-nums font-bold">
+						{/* Pivot */}
+						<Triangle className="absolute bottom-8 w-6 h-6 text-foreground opacity-30" />
+
+						{/* Seesaw bar with tilt */}
+						<motion.div
+							className="relative w-48 h-2 bg-foreground bg-gradient-to-r from-muted via-muted-foreground to-muted rounded-sm origin-center"
+							animate={{
+								rotate: Math.max(-15, Math.min(15, -((buyPercentage - 50) / 50) * 15)),
+							}}
+							transition={{
+								type: "spring",
+								stiffness: 120,
+								damping: 14,
+							}}
+						>
+							{/* Left circle (Buy) */}
+							<motion.div
+								animate={{ opacity: buyPercentage > sellPercentage ? 1 : 0.5 }}
+								transition={{ duration: 0.3 }}
+								className="inline-flex items-center backdrop-blur-lg justify-center absolute ring-2 ring-background -top-9 -left-4 w-12 h-12 bg-green-500 rounded-full text-xs scale-85"
+							>
+								{buyPercentage.toFixed(1)}%
+							</motion.div>
+
+							{/* Right circle (Sell) */}
+							<motion.div
+								animate={{ opacity: sellPercentage > buyPercentage ? 1 : 0.5 }}
+								transition={{ duration: 0.3 }}
+								className="inline-flex items-center backdrop-blur-lg justify-center absolute ring-2 ring-background -top-9 -right-4 w-12 h-12 bg-red-500 rounded-full text-xs scale-85"
+							>
+								{sellPercentage.toFixed(1)}%
+							</motion.div>
+						</motion.div>
+					</div>
+
+					{/* Pressure Values Display */}
+					<div className="flex justify-between flex-col text-xs text-muted-foreground">
+						<div>Buy Pressure: {formatQuantity(buyPressure).short}</div>
+						<div>Sell Pressure: {formatQuantity(sellPressure).short}</div>
+					</div>
+				</div>
 			</DataCard>
-
-			{/* Pressure Visualization Bar */}
-			<div className="relative h-5 bg-muted rounded-lg overflow-hidden">
-				{/* Buy Pressure (Green) */}
-				<div
-					className="absolute left-0 top-0 h-full bg-green-500 transition-all duration-300 ease-out"
-					style={{ width: `${buyPercentage}%` }}
-				>
-					<div className="flex items-center justify-center h-full text-white font-mono text-xs font-medium">
-						{buyPercentage.toFixed(1)}%
-					</div>
-				</div>
-
-				{/* Sell Pressure (Red) */}
-				<div
-					className="absolute right-0 top-0 h-full bg-red-600 transition-all duration-300 ease-out"
-					style={{ width: `${sellPercentage}%` }}
-				>
-					<div className="flex items-center justify-center h-full text-white font-mono text-xs font-medium">
-						{sellPercentage.toFixed(1)}%
-					</div>
-				</div>
-			</div>
-
-			{/* Pressure Values Display */}
-			<div className="flex justify-between text-xs text-muted-foreground">
-				<div>Buy Pressure: {formatQuantity(buyPressure).short}</div>
-				<div>Sell Pressure: {formatQuantity(sellPressure).short}</div>
-			</div>
 		</div>
 	);
 }
