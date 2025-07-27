@@ -17,9 +17,25 @@ interface TradesStore {
 export const useTradesStore = create<TradesStore>((set) => ({
 	trades: [],
 	setTrades: (trades) => set({ trades }),
-	addTrade: (trade) =>
-		set((state) => ({
-			trades: [...state.trades.slice(-200), trade],
-		})),
+	addTrade: (trade: Trade) => {
+		set((state) => {
+			const trades = [...state.trades];
+
+			const lastTrade = trades[trades.length - 1];
+			if (lastTrade && lastTrade.price === trade.price) {
+				trades[trades.length - 1] = {
+					...lastTrade,
+					qty: lastTrade.qty + trade.qty,
+					time: trade.time,
+				};
+			} else {
+				trades.push(trade);
+			}
+
+			const limited = trades.slice(-100);
+
+			return { trades: limited };
+		});
+	},
 	clearTrades: () => set({ trades: [] }),
 }));
